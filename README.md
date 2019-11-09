@@ -2,7 +2,7 @@
 =================================
 
 ## Architecture
-![High level arch]("./architecture.png")
+![High level arch](architecture.png)
 
 ## Pre-req
 
