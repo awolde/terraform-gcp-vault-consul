@@ -2,7 +2,23 @@
 =================================
 
 ## Pre-req
-- You will need a service account that can create projects and enable APIs.
+
+- The project will be created under a Folder
+- You will need a service account that can create projects and enable APIs. Here's the list of perms that I had on the folder
+    ```
+    Project Billing Manager
+    Compute Admin
+    Compute Network Admin
+    Create Service Accounts
+    Owner
+    Storage Admin
+    Viewer
+    Project Creator
+    ```
+- You will need to put the credentials file of another service account that can create service accounts in `vault-config` dir.
+- You will need to have HashiCorp binaries or rpm file, and change the variable `rpm_file` to the path of this file.
+
+## Steps
 
 - deploy with tf
 - sshuttle to your jump box
