@@ -15,15 +15,15 @@ resource "random_string" "suffix" {
 
 resource "google_project_service" "services" {
   //might need to change this to tf 0.12 for_each
-  count   = "${length(var.apis)}"
-  service = "${element(var.apis, count.index)}"
-  project = "${google_project.vault_project.project_id}"
+  count              = "${length(var.apis)}"
+  service            = "${element(var.apis, count.index)}"
+  project            = "${google_project.vault_project.project_id}"
   disable_on_destroy = false
 }
 
 module "vpc" {
-  source  = "terraform-google-modules/network/google"
-  version = "~> 1.4.0"
+  source       = "terraform-google-modules/network/google"
+  version      = "~> 1.4.0"
   project_id   = "${google_project.vault_project.project_id}"
   network_name = "${google_project.vault_project.project_id}-ntk"
 
@@ -68,9 +68,9 @@ resource "google_compute_forwarding_rule" "vault_primary_fr" {
   region                = var.region[0]
   load_balancing_scheme = "EXTERNAL"
   //  network               = module.vpc.network_name
-  name                  = "vault-forwarding-rule"
-  target                = google_compute_target_pool.vault_tp.self_link
-  port_range            = 8200
+  name       = "vault-forwarding-rule"
+  target     = google_compute_target_pool.vault_tp.self_link
+  port_range = 8200
 }
 
 resource "google_compute_target_pool" "vault_tp" {

@@ -66,7 +66,7 @@ resource "google_compute_instance" "consul_primary" {
     subnetwork = module.vpc.subnets_self_links[0]
   }
   //
-  tags = ["allow-cv", var.consul_env["pri"] ]
+  tags = ["allow-cv", var.consul_env["pri"]]
   //
   metadata_startup_script = data.template_file.consul_pri_template.rendered
   metadata = {
@@ -135,7 +135,7 @@ resource "google_compute_instance" "consul_secondary" {
     subnetwork = module.vpc.subnets_self_links[1]
   }
   //
-  tags = ["allow-cv", var.consul_env["sec"] ]
+  tags = ["allow-cv", var.consul_env["sec"]]
   //
   metadata_startup_script = data.template_file.consul_sec_template.rendered
 
