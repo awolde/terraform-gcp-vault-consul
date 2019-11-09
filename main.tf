@@ -183,13 +183,6 @@ resource "google_compute_instance" "vault_secondary" {
   depends_on = [google_storage_bucket.repo]
 }
 
-data "template_file" "init" {
-  template = file("${path.module}/init.sh.tpl")
-  vars = {
-    bucket = google_storage_bucket.repo.name
-  }
-}
-
 data "template_file" "consul_pri_template" {
   template = file("${path.module}/consul-server.tpl")
   vars = {
