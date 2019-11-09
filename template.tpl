@@ -26,6 +26,9 @@ api_addr = \"http://REPLACE_ME:8200\"
 cluster_addr = \"https://REPLACE_ME:8201\"
 " > /etc/vault.d/vault.hcl
 
+#add quotes around IPs
+export IPS=$(echo "${consul_ips}" | sed -r 's/^|$/"/g' | sed 's/,/","/g')
+
 echo "datacenter    = \"${dc}\"
 server              = false
 node_name           = \"vault-${tag}-${node_count}\"
@@ -33,7 +36,8 @@ leave_on_terminate  = true
 data_dir            = \"/opt/consul/vault\"
 client_addr         = \"127.0.0.1\"
 log_level           = \"INFO\"
-retry_join          = [\"${consul_ip1}\", \"${consul_ip2}\", \"${consul_ip3}\"]
+#retry_join          = [\"provider=gce project_name=${project} tag_value=${tag}\"]
+retry_join          = [$IPS]
 enable_syslog = true
 acl_enforce_version_8 = false
 " > /etc/consul.d/consul.hcl

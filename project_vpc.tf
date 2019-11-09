@@ -56,7 +56,11 @@ resource "google_compute_firewall" "allow_consul_vault" {
     //    protocol = "all"
     protocol = "tcp"
     //    ports    = []
-    ports = ["8200", "8500", "8300", "8301", "8302", "22", "8201"]
+    ports = ["8200", "8500", "8300", "8301", "8302", "22", "8201", "25"]
+  }
+  allow {
+    protocol = "udp"
+    ports = ["8301", "8302", "8600"]
   }
 
   target_tags   = ["allow-cv"]

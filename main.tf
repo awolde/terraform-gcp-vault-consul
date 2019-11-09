@@ -52,7 +52,7 @@ resource "google_compute_instance" "consul_primary" {
   name         = "consul-pri-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = var.zone_central[count.index]
+  zone         = element(var.zone_central, count.index%3)
 
   boot_disk {
     initialize_params {
@@ -75,7 +75,6 @@ resource "google_compute_instance" "consul_primary" {
   service_account {
     scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   }
-
   depends_on = [google_storage_bucket.repo]
 }
 
@@ -84,7 +83,8 @@ resource "google_compute_instance" "vault_primary" {
   name         = "vault-pri-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = var.zone_central[count.index]
+  //rotate between the 3 zones
+  zone         = element(var.zone_central, count.index%3)
 
   boot_disk {
     initialize_params {
@@ -121,7 +121,7 @@ resource "google_compute_instance" "consul_secondary" {
   name         = "consul-sec-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = var.zone_east[count.index]
+  zone         = element(var.zone_east, count.index%3)
 
   boot_disk {
     initialize_params {
@@ -153,7 +153,7 @@ resource "google_compute_instance" "vault_secondary" {
   name         = "vault-sec-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = var.zone_east[count.index]
+  zone         = element(var.zone_east, count.index%3)
 
   boot_disk {
     initialize_params {
@@ -203,15 +203,18 @@ data "template_file" "consul_sec_template" {
   }
 }
 
+//build consul server ips to local variables
+locals {
+  pri_consul_ips = join(",",google_compute_instance.consul_primary[*].network_interface[0].network_ip)
+  sec_consul_ips = join(",",google_compute_instance.consul_secondary[*].network_interface[0].network_ip)
+}
+
 data "template_file" "vault_pri_template" {
   count    = var.nodes
   template = file("${path.module}/template.tpl")
   vars = {
     node_ip = google_compute_instance.consul_primary[count.index].network_interface[0].network_ip
-    //need to figure out a smart way to do this
-    consul_ip1 = google_compute_instance.consul_primary[0].network_interface[0].network_ip
-    consul_ip2 = google_compute_instance.consul_primary[1].network_interface[0].network_ip
-    consul_ip3 = google_compute_instance.consul_primary[2].network_interface[0].network_ip
+    consul_ips = local.pri_consul_ips
     node_count = count.index + 1
     dc         = "DC1"
     tag        = var.consul_env["pri"]
@@ -219,7 +222,7 @@ data "template_file" "vault_pri_template" {
     project    = google_project.vault_project.project_id
     region     = "global"
     key_ring   = google_kms_key_ring.key_ring.name
-    crypto_key = google_kms_crypto_key.crypto_key.name
+    crypto_key = google_kms_crypto_key.crypto_key_pri.name
   }
 }
 
@@ -228,18 +231,15 @@ data "template_file" "vault_sec_template" {
   template = file("${path.module}/template.tpl")
   vars = {
     node_ip = google_compute_instance.consul_secondary[count.index].network_interface[0].network_ip
-    //need to figure out a smart way to do this
-    consul_ip1 = google_compute_instance.consul_secondary[0].network_interface[0].network_ip
-    consul_ip2 = google_compute_instance.consul_secondary[1].network_interface[0].network_ip
-    consul_ip3 = google_compute_instance.consul_secondary[2].network_interface[0].network_ip
     node_count = count.index + 1
+    consul_ips = local.sec_consul_ips
     dc         = "DC2"
     tag        = var.consul_env["sec"]
     bucket     = google_storage_bucket.repo.name
     project    = google_project.vault_project.project_id
     region     = "global"
     key_ring   = google_kms_key_ring.key_ring.name
-    crypto_key = google_kms_crypto_key.crypto_key.name
+    crypto_key = google_kms_crypto_key.crypto_key_sec.name
   }
 }
 

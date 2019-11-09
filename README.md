@@ -63,7 +63,7 @@
     ```
 
 - Save root token from above ^
-- ===== For some reason other two vault servers seal after this step, so unseal them manually. =====
+- ===== For some reason other two vault servers seal after this step, so restart vault. =====
 - Export primary address and token
 
     ```
