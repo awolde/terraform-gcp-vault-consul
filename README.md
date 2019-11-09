@@ -17,11 +17,12 @@
     ```
 - You will need to put the credentials file of another service account that can create service accounts in `vault-config` dir.
 - You will need to have HashiCorp binaries or rpm file, and change the variable `rpm_file` to the path of this file.
+- Replace the ssh public key with your key in variable `ssh_key`.
 
 ## Steps
 
 - deploy with tf
-- sshuttle to your jump box
+- [sshuttle](https://github.com/sshuttle) to your jump box to avoid using LB.
 - Unseal your primary and secondary separately
 
     ```

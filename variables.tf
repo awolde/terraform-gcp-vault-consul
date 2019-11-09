@@ -73,7 +73,7 @@ variable "zone_central" {
 }
 
 variable "ssh_key" {
-  default = "awolde:ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCupU7f2tOd+88jyUHg0JrB2oHFNKV1Pl+wnJzMAv35zM3EZtYrMmv2B4oLDFa9Mjd3+r34DPnWR5Gw6brxOgiZ0GdvhNA9iuKpvcxkRRQTLX5JHy9dRxrvljpEGPnDRFKrS2ADYTv2yHbOkJNc8QHF1gype0Vw5sfM+1cPSvVj7YhIGRn+NqQMbbpcMcBm8woVK96rBdYDHBWXboWyJUIKYsPD325l1UtM8AsMlHrEGXu0P0moqfYSYxYWak0DATwdHKwXJsSm5m2g+kECB4dbKHNhIUjWA/cEw7gaLoUaXOESHdyfxftn/6DGtlh7HCFe/dq36YladYzwvslJOhT/ amang@amang-OptiPlex-3010"
+  default = "awolde:ssh-rsa AAAAB3"
 }
 
 variable "nodes" {
