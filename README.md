@@ -1,6 +1,9 @@
 # Vault & Consul Enterprise Setup
 =================================
 
+## Architecture
+![High level arch]("./architecture.png")
+
 ## Pre-req
 
 - The project will be created under a Folder
@@ -18,6 +21,9 @@
 - You will need to put the credentials file of another service account that can create service accounts in `vault-config` dir.
 - You will need to have HashiCorp binaries or rpm file, and change the variable `rpm_file` to the path of this file.
 - Replace the ssh public key with your key in variable `ssh_key`.
+
+## Gotchas
+- compute API takes time to get enabled, so TF might error out in the middle. Just do another apply ;)
 
 ## Steps
 
