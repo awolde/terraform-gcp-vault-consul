@@ -52,7 +52,7 @@ resource "google_compute_instance" "consul_primary" {
   name         = "consul-pri-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = element(var.zone_central, count.index%3)
+  zone         = element(var.zone_central, count.index % 3)
 
   boot_disk {
     initialize_params {
@@ -75,7 +75,7 @@ resource "google_compute_instance" "consul_primary" {
   service_account {
     scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   }
-  depends_on = [google_storage_bucket.repo]
+  depends_on = [google_storage_bucket_object.rpm]
 }
 
 resource "google_compute_instance" "vault_primary" {
@@ -84,7 +84,7 @@ resource "google_compute_instance" "vault_primary" {
   project      = google_project.vault_project.project_id
   machine_type = var.type
   //rotate between the 3 zones
-  zone         = element(var.zone_central, count.index%3)
+  zone = element(var.zone_central, count.index % 3)
 
   boot_disk {
     initialize_params {
@@ -112,7 +112,7 @@ resource "google_compute_instance" "vault_primary" {
   allow_stopping_for_update = true
 
   //wait till rpm gets uploaded to gcs bucket
-  depends_on = [google_storage_bucket.repo]
+  depends_on = [google_storage_bucket_object.rpm]
 
 }
 
@@ -121,7 +121,7 @@ resource "google_compute_instance" "consul_secondary" {
   name         = "consul-sec-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = element(var.zone_east, count.index%3)
+  zone         = element(var.zone_east, count.index % 3)
 
   boot_disk {
     initialize_params {
@@ -145,7 +145,7 @@ resource "google_compute_instance" "consul_secondary" {
   metadata = {
     "ssh-keys" = var.ssh_key
   }
-  depends_on = [google_storage_bucket.repo]
+  depends_on = [google_storage_bucket_object.rpm]
 }
 
 resource "google_compute_instance" "vault_secondary" {
@@ -153,7 +153,7 @@ resource "google_compute_instance" "vault_secondary" {
   name         = "vault-sec-${count.index + 1}"
   project      = google_project.vault_project.project_id
   machine_type = var.type
-  zone         = element(var.zone_east, count.index%3)
+  zone         = element(var.zone_east, count.index % 3)
 
   boot_disk {
     initialize_params {
@@ -180,7 +180,7 @@ resource "google_compute_instance" "vault_secondary" {
   metadata = {
     "ssh-keys" = var.ssh_key
   }
-  depends_on = [google_storage_bucket.repo]
+  depends_on = [google_storage_bucket_object.rpm]
 }
 
 data "template_file" "consul_pri_template" {
@@ -205,15 +205,15 @@ data "template_file" "consul_sec_template" {
 
 //build consul server ips to local variables
 locals {
-  pri_consul_ips = join(",",google_compute_instance.consul_primary[*].network_interface[0].network_ip)
-  sec_consul_ips = join(",",google_compute_instance.consul_secondary[*].network_interface[0].network_ip)
+  pri_consul_ips = join(",", google_compute_instance.consul_primary[*].network_interface[0].network_ip)
+  sec_consul_ips = join(",", google_compute_instance.consul_secondary[*].network_interface[0].network_ip)
 }
 
 data "template_file" "vault_pri_template" {
   count    = var.nodes
   template = file("${path.module}/template.tpl")
   vars = {
-    node_ip = google_compute_instance.consul_primary[count.index].network_interface[0].network_ip
+    node_ip    = google_compute_instance.consul_primary[count.index].network_interface[0].network_ip
     consul_ips = local.pri_consul_ips
     node_count = count.index + 1
     dc         = "DC1"
@@ -230,7 +230,7 @@ data "template_file" "vault_sec_template" {
   count    = var.nodes
   template = file("${path.module}/template.tpl")
   vars = {
-    node_ip = google_compute_instance.consul_secondary[count.index].network_interface[0].network_ip
+    node_ip    = google_compute_instance.consul_secondary[count.index].network_interface[0].network_ip
     node_count = count.index + 1
     consul_ips = local.sec_consul_ips
     dc         = "DC2"
@@ -242,23 +242,3 @@ data "template_file" "vault_sec_template" {
     crypto_key = google_kms_crypto_key.crypto_key_sec.name
   }
 }
-
-//resource "google_compute_forwarding_rule" "vault_primary_fr" {
-//  project = google_project.vault_project.project_id
-//  name                  = "vault-forwarding-rule"
-//  region                = var.region[0]
-//  load_balancing_scheme = "EXTERNAL"
-//  backend_service       = "${google_compute_region_backend_service.backend.self_link}"
-//  all_ports             = true
-//  network               = "${module.vpc.network_name}"
-//  subnetwork            = module.vpc.subnets_names[0]
-//}
-//
-//resource "google_compute_region_backend_service" "backend" {
-//  project = google_project.vault_project.project_id
-//  name                  = "vault-backend"
-//  region                = var.region[0]
-//  health_checks         = ["${google_compute_http_health_check.vault_hc.self_link}"]
-//}
-
-

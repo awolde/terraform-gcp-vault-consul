@@ -9,13 +9,11 @@ variable "region" {
 }
 
 variable "billing_account" {
-  type    = "string"
-  default = "xxxx-xxxx-xxxx"
+  type = "string"
 }
 
 variable "folder_id" {
-  type    = "string"
-  default = "738401585299"
+  type = "string"
 }
 
 variable "project_name" {
@@ -47,7 +45,7 @@ variable "apis" {
 
 variable "skip_delete" {
   type    = "string"
-  default = "false"
+  default = "true"
 }
 
 variable "type" {

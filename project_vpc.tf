@@ -60,7 +60,7 @@ resource "google_compute_firewall" "allow_consul_vault" {
   }
   allow {
     protocol = "udp"
-    ports = ["8301", "8302", "8600"]
+    ports    = ["8301", "8302", "8600"]
   }
 
   target_tags   = ["allow-cv"]
@@ -71,14 +71,13 @@ resource "google_compute_forwarding_rule" "vault_primary_fr" {
   project               = google_project.vault_project.project_id
   region                = var.region[0]
   load_balancing_scheme = "EXTERNAL"
-  //  network               = module.vpc.network_name
-  name       = "vault-forwarding-rule"
-  target     = google_compute_target_pool.vault_tp.self_link
-  port_range = 8200
+  name                  = "vault-pri-forwarding-rule"
+  target                = google_compute_target_pool.vault_pri_tp.self_link
+  port_range            = 8200
 }
 
-resource "google_compute_target_pool" "vault_tp" {
-  name    = "vault-pool"
+resource "google_compute_target_pool" "vault_pri_tp" {
+  name    = "vault-pri-pool"
   project = google_project.vault_project.project_id
   region  = var.region[0]
 
@@ -96,4 +95,25 @@ resource "google_compute_http_health_check" "vault_hc" {
   check_interval_sec = 2
   timeout_sec        = 1
   port               = 8200
+}
+
+resource "google_compute_forwarding_rule" "vault_secondary_fr" {
+  project               = google_project.vault_project.project_id
+  region                = var.region[2]
+  load_balancing_scheme = "EXTERNAL"
+  name                  = "vault-sec-forwarding-rule"
+  target                = google_compute_target_pool.vault_sec_tp.self_link
+  port_range            = 8200
+}
+
+resource "google_compute_target_pool" "vault_sec_tp" {
+  name    = "vault-sec-pool"
+  project = google_project.vault_project.project_id
+  region  = var.region[2]
+
+  instances = google_compute_instance.vault_secondary[*].self_link
+
+  health_checks = [
+    google_compute_http_health_check.vault_hc.name,
+  ]
 }

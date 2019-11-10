@@ -29,3 +29,15 @@ output "consul_sec_ips" {
     "http://${ip}:8500"
   ]
 }
+
+output "connect" {
+  value = "sshuttle -r ${google_compute_instance.jump_box.network_interface.0.access_config.0.nat_ip} 10.0.0.0/8"
+}
+
+output "primary_lb" {
+  value = "http://${google_compute_forwarding_rule.vault_primary_fr.ip_address}:8200"
+}
+
+output "secondary_lb" {
+  value = "http://${google_compute_forwarding_rule.vault_secondary_fr.ip_address}:8200"
+}

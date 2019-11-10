@@ -21,6 +21,7 @@
 - You will need to put the credentials file of another service account that can create service accounts in `vault-config` dir.
 - You will need to have HashiCorp binaries or rpm file, and change the variable `rpm_file` to the path of this file.
 - Replace the ssh public key with your key in variable `ssh_key`.
+- If you have auto-create-network flag off in your org, set `auto_create_network` variable to `true`. Seems like Tf [tries to delete](https://www.terraform.io/docs/providers/google/r/google_project.html#auto_create_network) a network that does not exist and errors out.
 
 ## Gotchas
 - compute API takes time to get enabled, so TF might error out in the middle. Just do another apply ;)
