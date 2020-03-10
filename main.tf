@@ -1,6 +1,6 @@
 resource "google_storage_bucket" "repo" {
-  name          = "${google_project.vault_project.project_id}-bucket"
-  project       = google_project.vault_project.project_id
+  name          = "${var.project}-bucket"
+  project       = var.project
   storage_class = "NEARLINE"
 }
 
@@ -18,7 +18,7 @@ resource "google_storage_bucket_iam_member" "iam" {
 
 resource "google_compute_instance" "jump_box" {
   name         = "jump-host"
-  project      = google_project.vault_project.project_id
+  project      = var.project
   machine_type = var.type
   zone         = "us-central1-a"
 
@@ -50,7 +50,7 @@ resource "google_compute_instance" "jump_box" {
 resource "google_compute_instance" "consul_primary" {
   count        = var.nodes
   name         = "consul-pri-${count.index + 1}"
-  project      = google_project.vault_project.project_id
+  project      = var.project
   machine_type = var.type
   zone         = element(var.zone_central, count.index % 3)
 
@@ -64,6 +64,7 @@ resource "google_compute_instance" "consul_primary" {
 
   network_interface {
     subnetwork = module.vpc.subnets_self_links[0]
+    subnetwork_project = var.project
   }
   //
   tags = ["allow-cv", var.consul_env["pri"]]
@@ -81,7 +82,7 @@ resource "google_compute_instance" "consul_primary" {
 resource "google_compute_instance" "vault_primary" {
   count        = var.nodes
   name         = "vault-pri-${count.index + 1}"
-  project      = google_project.vault_project.project_id
+  project      = var.project
   machine_type = var.type
   //rotate between the 3 zones
   zone = element(var.zone_central, count.index % 3)
@@ -116,10 +117,11 @@ resource "google_compute_instance" "vault_primary" {
 
 }
 
+
 resource "google_compute_instance" "consul_secondary" {
-  count        = var.nodes
+  count        = var.enable_secondary ? var.nodes : 0
   name         = "consul-sec-${count.index + 1}"
-  project      = google_project.vault_project.project_id
+  project      = var.project
   machine_type = var.type
   zone         = element(var.zone_east, count.index % 3)
 
@@ -149,9 +151,9 @@ resource "google_compute_instance" "consul_secondary" {
 }
 
 resource "google_compute_instance" "vault_secondary" {
-  count        = var.nodes
+  count        = var.enable_secondary ? var.nodes : 0
   name         = "vault-sec-${count.index + 1}"
-  project      = google_project.vault_project.project_id
+  project      = var.project
   machine_type = var.type
   zone         = element(var.zone_east, count.index % 3)
 
@@ -188,7 +190,7 @@ data "template_file" "consul_pri_template" {
   vars = {
     tag     = var.consul_env["pri"]
     dc      = "DC1"
-    project = google_project.vault_project.project_id
+    project = var.project
     bucket  = google_storage_bucket.repo.name
   }
 }
@@ -198,7 +200,7 @@ data "template_file" "consul_sec_template" {
   vars = {
     tag     = var.consul_env["sec"]
     dc      = "DC2"
-    project = google_project.vault_project.project_id
+    project = var.project
     bucket  = google_storage_bucket.repo.name
   }
 }
@@ -219,7 +221,7 @@ data "template_file" "vault_pri_template" {
     dc         = "DC1"
     tag        = var.consul_env["pri"]
     bucket     = google_storage_bucket.repo.name
-    project    = google_project.vault_project.project_id
+    project    = var.project
     region     = "global"
     key_ring   = google_kms_key_ring.key_ring.name
     crypto_key = google_kms_crypto_key.crypto_key_pri.name
@@ -227,7 +229,7 @@ data "template_file" "vault_pri_template" {
 }
 
 data "template_file" "vault_sec_template" {
-  count    = var.nodes
+  count    = var.enable_secondary ? var.nodes : 0
   template = file("${path.module}/template.tpl")
   vars = {
     node_ip    = google_compute_instance.consul_secondary[count.index].network_interface[0].network_ip
@@ -236,7 +238,7 @@ data "template_file" "vault_sec_template" {
     dc         = "DC2"
     tag        = var.consul_env["sec"]
     bucket     = google_storage_bucket.repo.name
-    project    = google_project.vault_project.project_id
+    project    = var.project
     region     = "global"
     key_ring   = google_kms_key_ring.key_ring.name
     crypto_key = google_kms_crypto_key.crypto_key_sec.name

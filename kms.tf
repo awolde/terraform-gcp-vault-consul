@@ -1,11 +1,11 @@
 resource "google_service_account" "vault_kms_service_account" {
-  account_id   = "vault-gcpkms"
+  account_id   = "vault-kms"
   display_name = "Vault KMS for auto-unseal"
-  project      = google_project.vault_project.project_id
+  project      = var.project
 }
 
 resource "google_kms_key_ring" "key_ring" {
-  project  = google_project.vault_project.project_id
+  project  = var.project
   name     = "vt-keyring"
   location = "global"
 }
@@ -25,7 +25,7 @@ resource "google_kms_crypto_key" "crypto_key_pri" {
 
 resource "google_kms_key_ring_iam_binding" "vault_iam_kms_binding" {
   # key_ring_id = "${google_kms_key_ring.key_ring.id}"
-  key_ring_id = "${google_project.vault_project.project_id}/global/${google_kms_key_ring.key_ring.name}"
+  key_ring_id = "${var.project}/global/${google_kms_key_ring.key_ring.name}"
   role        = "roles/owner"
 
   members = [

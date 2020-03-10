@@ -1,5 +1,5 @@
 variable "region" {
-  type = "list"
+  type = list
   default = [
     "us-central1",
     "us-west1",
@@ -14,10 +14,6 @@ variable "billing_account" {
 
 variable "folder_id" {
   type = "string"
-}
-
-variable "project_name" {
-  default = "vault-demo-project"
 }
 
 variable "auto_create_network" {
@@ -70,6 +66,10 @@ variable "zone_central" {
   ]
 }
 
+variable "enable_secondary" {
+  type = bool
+  default = true
+}
 variable "ssh_key" {
   default = "awolde:ssh-rsa AAAAB3"
 }
