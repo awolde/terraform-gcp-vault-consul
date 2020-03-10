@@ -38,7 +38,9 @@ output "primary_lb" {
   value = "http://${google_compute_forwarding_rule.vault_primary_fr.ip_address}:8200"
 }
 
-//output "secondary_lb" {
-//
-//  value = "http://${google_compute_forwarding_rule.vault_secondary_fr.*.ip_address}:8200"
-//}
+output "secondary_lb" {
+  value = [
+    for ip in google_compute_forwarding_rule.vault_secondary_fr.*.ip_address :
+      "http://${ip}:8200"
+  ]
+}
